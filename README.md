@@ -1,9 +1,7 @@
 # AWS DevOps Infrastructure Project
 
 ## Project Overview
-
 This project demonstrates a production-style AWS infrastructure setup using Ubuntu EC2 instances, Nginx, Apache2, HTTPS, EBS storage, and basic monitoring.
-
 The infrastructure is designed with Nginx acting as a reverse proxy and load balancer in front of two Apache2 backend servers running on a private network.
 
 ### Key Features
