@@ -1,213 +1,184 @@
 # AWS DevOps Infrastructure Project
 
-A hands-on AWS DevOps project demonstrating a highly available web application architecture using Amazon EC2, Ubuntu, Nginx, Apache2, EBS, load balancing, Security Groups, HTTPS, and basic monitoring.
+## Project Overview
+
+This project demonstrates a production-style AWS infrastructure setup using Ubuntu EC2 instances, Nginx, Apache2, HTTPS, EBS storage, and basic monitoring.
+
+The infrastructure is designed with Nginx acting as a reverse proxy and load balancer in front of two Apache2 backend servers running on a private network.
+
+### Key Features
+
+- 3 Ubuntu EC2 instances
+- Nginx reverse proxy and load balancing
+- 2 Apache2 backend servers
+- Round-robin load balancing
+- HTTPS using a self-signed SSL certificate
+- Private backend access through Security Groups
+- 8 GiB gp3 EBS persistent storage
+- Basic system and CloudWatch monitoring
+- Backend failure testing
+- Custom web application deployed on Apache2
+- Git-based project documentation
+
+---
 
 ## Architecture
+
+The architecture consists of one public-facing Nginx server and two Apache2 backend servers communicating through the private AWS network.
+
+![AWS DevOps Infrastructure Architecture](images/architecture-diagram.png)
+
+### Traffic Flow
 
 Internet
    |
    | HTTP / HTTPS
    v
-EC2-1 — Nginx Reverse Proxy / Load Balancer
+EC2-1 — Ubuntu + Nginx
+Reverse Proxy / Load Balancer
    |
-   |----------------------|
+   | Private Network
+   |
+   +----------------------+
    |                      |
    v                      v
-EC2-2 — Apache2       EC2-3 — Apache2
-Backend 1             Backend 2
+EC2-2                  EC2-3
+Ubuntu + Apache2       Ubuntu + Apache2
+Backend 1              Backend 2
 
-## AWS Infrastructure
+EC2-1
+  |
+  +-- 8 GiB gp3 EBS
+      /data
 
-| Component | Configuration |
-|---|---|
-| EC2-1 | Ubuntu + Nginx |
-| EC2-2 | Ubuntu + Apache2 |
-| EC2-3 | Ubuntu + Apache2 |
-| Load Balancing | Nginx Round Robin |
-| Storage | 8 GiB gp3 EBS |
-| Monitoring | CloudWatch + Linux system monitoring |
-| HTTPS | Nginx + self-signed SSL certificate |
 
-## Technologies Used
+# Technologies
 
-- AWS EC2
-- Ubuntu Linux
-- Nginx
-- Apache2
-- Nginx Reverse Proxy
-- Load Balancing
-- Amazon EBS
-- AWS Security Groups
-- HTTPS / SSL
-- CloudWatch
-- Linux system administration
-- Bash
+| Technology          | Purpose                           |
+| ------------------- | --------------------------------- |
+| AWS EC2             | Compute infrastructure            |
+| Ubuntu              | Operating system                  |
+| Nginx               | Reverse proxy and load balancer   |
+| Apache2             | Backend web servers               |
+| AWS EBS             | Persistent storage                |
+| AWS Security Groups | Network access control            |
+| HTTPS / SSL         | Secure web communication          |
+| CloudWatch          | Basic monitoring                  |
+| Git & GitHub        | Version control and documentation |
+| HTML / CSS          | Website frontend                  |
 
-## Project Implementation
 
-### 1. EC2 Infrastructure
 
-Created three Ubuntu EC2 instances:
+# Implementation
 
-- EC2-1 — Nginx load balancer
-- EC2-2 — Apache backend server 1
-- EC2-3 — Apache backend server 2
+1. EC2 Infrastructure
 
-All instances were deployed inside the same VPC.
+Three Ubuntu EC2 instances were configured:
 
-### 2. Apache Backend Servers
+EC2-1: Nginx reverse proxy and load balancer
+EC2-2: Apache2 Backend 1
+EC2-3: Apache2 Backend 2
+
+2. Apache Backend Servers
 
 Apache2 was installed and configured on EC2-2 and EC2-3.
 
-Both servers host the same web application from:
+Both backend servers host the same custom website and are accessible from EC2-1 through their private IP addresses.
 
-`/var/www/html/index.html`
-
-The website title is:
-
-**DevOps Cloud**
-
-### 3. Nginx Load Balancing
+3. Nginx Reverse Proxy & Load Balancing
 
 Nginx was configured as a reverse proxy and load balancer.
 
-The upstream configuration uses both Apache servers:
+The upstream configuration contains both Apache backend servers:
 
-```nginx
 upstream apache_servers {
     server 172.31.44.92;
     server 172.31.37.154;
 }
 
+Nginx distributes incoming requests between the two backend servers using round-robin load balancing.
 
-4. Load Balancing Verification
-
-Load balancing was verified using repeated requests:
-
-for i in {1..10}; do
-    curl -s http://localhost
-    echo
-done
-
-5. Failure Testing
-
-Apache was stopped on one backend server:
-
-sudo systemctl stop apache2
-
-Traffic continued to reach the remaining backend server.
-
-Apache was then restarted and verified:
-
-sudo systemctl start apache2
-
-This demonstrated backend failure handling.
-
-6. EBS Storage
-
-An additional 8 GiB gp3 EBS volume was attached to EC2-1.
-
-The volume was formatted using ext4 and mounted at:
-
-/data
-
-A test file was created:
-
-echo "EBS storage test" | sudo tee /data/test.txt
-
-EBS persistence was verified after reboot using:
-
-df -h /data
-cat /data/test.txt
-
-The filesystem was configured in /etc/fstab using its UUID so that it automatically mounts after reboot.
-
-7. Basic Monitoring
-
-Basic system monitoring was performed using:
-
-df -h
-free -h
-sudo systemctl status nginx
-sudo systemctl status apache2
-
-EC2 CPU utilization was also monitored through Amazon CloudWatch.
-
-8. Security Improvements
-
-Security Groups were configured so that:
-
-Nginx accepts HTTP traffic from the internet.
-Apache servers accept HTTP traffic only from the Nginx Security Group.
-SSH access is restricted to the administrator's current IP address.
-
-Direct HTTP access to both Apache servers from the internet was tested and blocked successfully.
-
-9. HTTPS
+4. HTTPS / SSL
 
 HTTPS was configured on Nginx using a self-signed SSL certificate.
 
-Nginx listens on:
+Because the certificate is self-signed and no domain name is configured, browsers may display a certificate warning.
 
-443
+5. EBS Persistent Storage
 
-HTTPS was verified successfully with:
+An 8 GiB gp3 EBS volume was attached to EC2-1 and mounted at:
 
-curl.exe -k -I https://<Nginx-Public-IP>
+/data
 
-The server returned:
+The mount was configured in /etc/fstab using the volume UUID to ensure persistence after reboot.
 
-HTTP/1.1 200 OK
+6. Security
 
-Because this project does not use a registered domain, a self-signed certificate was used for demonstration purposes.
+Security Groups were configured so that:
 
-Verification
+EC2-1 accepts HTTP and HTTPS traffic from the internet.
+SSH access is restricted to the administrator's current IP.
+EC2-2 and EC2-3 allow HTTP traffic only from the EC2-1 Security Group.
+Backend servers are therefore not directly accessible from the public internet.
 
-The following functionality was successfully tested:
+7. Monitoring & Failure Testing
 
-Nginx service availability
-Apache backend availability
-Nginx round-robin load balancing
-Backend failure handling
-Website availability
-EBS persistence after reboot
-CPU and memory monitoring
-Disk usage monitoring
-Security Group restrictions
-Direct backend access blocking
-HTTPS connectivity
-Key Learning Outcomes
+Basic infrastructure monitoring was performed using:
 
-This project provided hands-on experience with:
+CloudWatch CPU utilization
+df -h
+free -h
+systemctl status nginx
+systemctl status apache2
+
+Backend failure testing was also performed by stopping one Apache server and verifying that traffic continued through the remaining backend.
+
+# Project Verification
+
+1. AWS Infrastructure
+
+The AWS infrastructure consists of three Ubuntu EC2 instances configured for the Nginx reverse proxy/load balancer and two Apache2 backend servers.
+
+2. Nginx & Apache Verification
+
+Nginx is active and both Apache backend servers successfully return HTTP 200 responses over the private network.
+
+3. HTTPS & Security
+
+HTTPS is successfully configured on Nginx and the HTTPS endpoint returns an HTTP 200 response.
+
+Note: The project uses a self-signed SSL certificate because no domain name is configured. Browser certificate warnings are therefore expected.
+
+4. EBS Persistent Storage
+
+The 8 GiB gp3 EBS volume is mounted at /data and persistence was verified after reboot.
+
+# Deployed Website
+
+A custom DevOps Cloud website was deployed on both Apache2 backend servers and is served to users through the Nginx reverse proxy.
+
+Security Highlights
+Public access is handled through Nginx.
+Apache backend servers are protected from direct public HTTP access.
+Backend communication uses private IP addresses.
+SSH access is restricted to the administrator's IP.
+HTTPS is enabled on the public Nginx endpoint.
+Security Groups are used to control communication between the infrastructure components.
+
+
+# Project Outcome
+# This project demonstrates practical experience with:
 
 AWS EC2 infrastructure
 Linux server administration
 Nginx reverse proxy configuration
 Load balancing
 Apache web server deployment
-Private IP communication
 AWS Security Groups
-EBS storage and persistence
-Basic CloudWatch monitoring
-HTTPS and SSL configuration
-Service troubleshooting
-High-availability concepts
-Future Improvements
+HTTPS / SSL configuration
+EBS persistent storage
+Basic monitoring
+Failure testing
+Git and GitHub
 
-Potential future improvements include:
-
-Route 53 domain configuration
-Trusted SSL certificate using Let's Encrypt or AWS Certificate Manager
-Application Load Balancer
-Auto Scaling
-CloudWatch alarms
-Centralized logging
-Infrastructure as Code using Terraform
-CI/CD pipeline using GitHub Actions
-Project Status
-
-Completed
-
-Core infrastructure, load balancing, failure testing, persistent EBS storage, security improvements, monitoring, and HTTPS have been implemented and verified.
-
-
+# The project provides a practical foundation for further DevOps work involving CI/CD, infrastructure as code, containerization, and automated deployments.
