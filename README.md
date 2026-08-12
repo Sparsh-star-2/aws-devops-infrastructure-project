@@ -211,4 +211,23 @@ Completed
 Core infrastructure, load balancing, failure testing, persistent EBS storage, security improvements, monitoring, and HTTPS have been implemented and verified.
 
 
+## Architecture
+[Architecture Diagram]
+
+## Project Verification
+
+### 1. AWS Infrastructure
+[Screenshot]
+
+### 2. Nginx Load Balancing
+[Screenshot]
+
+### 3. Backend Failure Testing
+[Screenshot]
+
+### 4. HTTPS & Security
+[Screenshot]
+
+### 5. EBS Persistent Storage
+[Screenshot]
 
