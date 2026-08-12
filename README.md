@@ -24,8 +24,6 @@ The infrastructure is designed with Nginx acting as a reverse proxy and load bal
 
 The architecture consists of one public-facing Nginx server and two Apache2 backend servers communicating through the private AWS network.
 
-![AWS DevOps Infrastructure Architecture](images/architecture-diagram.png)
-
 ### Traffic Flow
 
 Internet
